@@ -29,6 +29,14 @@ apply from: 'https://gist.githubusercontent.com/UpcraftLP/0a98a7dfe913bd3e99073e
 def buildVersion = project.mod_version + ext.buildName
 def change_log = ext.changeLog
 
+def username = project.artifact
+if (project.hasProperty('dev_mail')) {
+    username = findProperty('dev_mail')
+}
+else if (project.hasProperty('dev_username')) {
+    username = findProperty('dev_username')
+}
+
 group project.group
 version = "${project.mc_version}-" + buildVersion
 archivesBaseName = project.artifact
@@ -39,7 +47,7 @@ compileJava {
 }
 
 tasks.build.doLast {
-    println("Current version is ${modid}-${version}")
+    println("Current version is ${project.artifact}-${project.version}")
     println("Changelog:")
     println(change_log)
 }
@@ -64,6 +72,21 @@ minecraft {
     else if (file('../run').exists()) runDir = "../run"
     else runDir = "run"
     tweakClass = 'org.dimdev.riftloader.launch.RiftLoaderTweaker'
+
+    //configure login
+    if(project.hasProperty('dev_uuid')) {
+        clientRunArgs += "--uuid=${dev_uuid}"
+    }
+    else {
+        clientRunArgs += "--username=${username}"
+        if(project.hasProperty('dev_password')) clientRunArgs += "--password=${dev_password}"
+    }
+
+    //skip the screen to confirm that you want to load a world with missing registry entries
+    clientJvmArgs += "-Dfml.doNotBackup=true"
+
+    //skip jansi warnings in the log
+    clientJvmArgs += '-Dlog4j.skipJansi=true'
 }
 
 compileJava {
