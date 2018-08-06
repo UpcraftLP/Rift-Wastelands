@@ -16,9 +16,11 @@ buildscript {
     }
     dependencies {
         classpath 'org.dimdev:ForgeGradle:2.3-SNAPSHOT'
+        classpath 'com.matthewprenger:CurseGradle:1.0-SNAPSHOT'
     }
 }
 
+apply plugin: 'com.matthewprenger.cursegradle'
 //apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'net.minecraftforge.gradle.tweaker-client'
 apply plugin: 'java'
@@ -29,7 +31,7 @@ def change_log = ext.changeLog
 
 group project.group
 version = "${project.mc_version}-" + buildVersion
-archivesBaseName = project.jarName
+archivesBaseName = project.artifact
 
 sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
 compileJava {
@@ -85,7 +87,8 @@ jar {
             "Implementation-Version": "${project.mod_version}",
             "Built-On": project.mc_version,
             "Rift": project.rift_version,
-            "Maven-Artifact": "${project.group}:${project.artifact}:${project.version}"
+            "Timestamp": new Date().getTime(),
+            "Maven-Artifact": "${project.group}:${project.archivesBaseName}:${project.version}"
             //"Main-Class": project.installer_main_class
     )
     classifier '' //this is the main jar!
@@ -106,3 +109,35 @@ task signJar(type: SignJar, dependsOn: reobfJar) {
 }
 
 tasks.build.dependsOn signJar
+
+def curseRelations = {
+    requiredLibrary 'rift'
+}
+
+curseforge {
+    if (project.hasProperty('curse_key'))
+        apiKey = project.curse_key
+
+
+    if(project.hasProperty('curse_id')) {
+        project {
+            id = project.curse_id
+            changelogType = 'markdown'
+            changelog = change_log
+            releaseType = project.release_type
+
+            relations curseRelations
+
+            //no such jars for now
+            //addArtifact javadocJar
+            //addArtifact sourceJar
+            //addArtifact apiJar
+
+            addGameVersion '1.13'
+
+            mainArtifact(jar) {
+                displayName = "${project.name} MC${mc_version} v${buildVersion}"
+            }
+        }
+    }
+}
