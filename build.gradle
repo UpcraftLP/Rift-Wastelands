@@ -85,7 +85,7 @@ jar {
             "Implementation-Version": "${project.mod_version}",
             "Built-On": project.mc_version,
             "Rift": project.rift_version,
-            "Maven-Artifact": "${project.group}:${project.archivesBaseName}:${project.version}"
+            "Maven-Artifact": "${project.group}:${project.artifact}:${project.version}"
             //"Main-Class": project.installer_main_class
     )
     classifier '' //this is the main jar!
