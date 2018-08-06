@@ -159,7 +159,7 @@ curseforge {
             addGameVersion '1.13'
 
             mainArtifact(jar) {
-                displayName = "${project.name} MC${mc_version} v${buildVersion}"
+                displayName = "${project.display_name} MC${mc_version} v${buildVersion}"
             }
         }
     }
