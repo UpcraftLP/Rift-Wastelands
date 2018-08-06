@@ -1,0 +1,108 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            name = "DimDev"
+            url = "https://www.dimdev.org/maven/"
+        }
+        maven {
+            name = "Forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+        maven {
+            name = "Sonatype"
+            url = 'https://oss.sonatype.org/content/groups/public'
+        }
+    }
+    dependencies {
+        classpath 'org.dimdev:ForgeGradle:2.3-SNAPSHOT'
+    }
+}
+
+//apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'net.minecraftforge.gradle.tweaker-client'
+apply plugin: 'java'
+apply from: 'https://gist.githubusercontent.com/UpcraftLP/0a98a7dfe913bd3e99073efa7ad0353b/raw/mod_script.gradle'
+
+def buildVersion = project.mod_version + ext.buildName
+def change_log = ext.changeLog
+
+group project.group
+version = "${project.mc_version}-" + buildVersion
+archivesBaseName = project.jarName
+
+sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
+compileJava {
+    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+tasks.build.doLast {
+    println("Current version is ${modid}-${version}")
+    println("Changelog:")
+    println(change_log)
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    maven {
+        name = "DimDev"
+        url = "https://www.dimdev.org/maven/"
+    }
+}
+
+dependencies {
+    implementation "org.dimdev:rift:${rift_version}:dev"
+}
+
+minecraft {
+    version = project.mc_version
+    mappings = project.mc_mappings
+    if (project.hasProperty('runDir')) runDir = findProperty('runDir')
+    else if (file('../run').exists()) runDir = "../run"
+    else runDir = "run"
+    tweakClass = 'org.dimdev.riftloader.launch.RiftLoaderTweaker'
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+}
+
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+} else {
+    throw new IllegalArgumentException("wrong java version")
+}
+
+jar {
+    from "LICENSE"
+    manifest.mainAttributes(
+            "Implementation-Title": project.name,
+            "Implementation-Version": "${project.mod_version}",
+            "Built-On": project.mc_version,
+            "Rift": project.rift_version,
+            "Maven-Artifact": "${project.group}:${project.archivesBaseName}:${project.version}"
+            //"Main-Class": project.installer_main_class
+    )
+    classifier '' //this is the main jar!
+}
+
+//sign Jar
+task signJar(type: SignJar, dependsOn: reobfJar) {
+    onlyIf {
+        project.hasProperty('sign_keyStore')
+    }
+    keyPass = findProperty('sign_keyPass')
+    keyStore = findProperty('sign_keyStore')
+    storePass = findProperty('sign_storePass')
+    alias = findProperty('sign_alias')
+
+    inputFile = jar.archivePath
+    outputFile = jar.archivePath
+}
+
+tasks.build.dependsOn signJar

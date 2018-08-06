@@ -1,0 +1,10 @@
+{
+    "id": "wastelands",
+    "name": "Wastelands World Generator",
+    "authors": [
+        "UpcraftLP"
+    ],
+    "listeners": [
+        "com.github.upcraftlp.wastelands.WasteLands"
+    ]
+}
